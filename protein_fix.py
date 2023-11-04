@@ -1,0 +1,6 @@
+df = pd.read_csv(r'C:\Users\carao\OneDrive\Desktop\DS4\CA4022\Assignment1\starbucks_datasets\starbucks_drinkMenu_expanded.csv')
+print(df.columns)
+df.columns = df.columns.str.strip()
+df.rename(columns={'Protein (g)': 'Protein_g'}, inplace=True)
+df.head()
+df.to_csv(r'C:\Users\carao\OneDrive\Desktop\DS4\CA4022\Assignment1\starbucks_datasets\starbucks_drinkMenu_modified.csv', index=False)

@@ -1,0 +1,79 @@
+CREATE SCHEMA IF NOT EXISTS CA4022;
+
+USE CA4022;
+
+DROP TABLE drinks_calories;
+
+CREATE TABLE IF NOT EXISTS drinks_calories (Beverage_category STRING, Beverage STRING, Beverage_prep STRING, Calories INT)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+LOAD DATA LOCAL INPATH '/home/caraoboyle/hadoop-3.3.6/output_expanded/part-m-00000'
+
+OVERWRITE INTO TABLE drinks_calories;
+
+---------------------------------------------------------------------------
+-- 5 drinks with the lowest calories
+---------------------------------------------------------------------------
+
+SELECT Beverage_category, Beverage, Beverage_prep, Calories
+FROM drinks_calories
+ORDER BY Calories
+LIMIT 5;
+
+---------------------------------------------------------------------------
+-- Beverage category with the most beverages
+---------------------------------------------------------------------------
+
+CREATE TABLE beverage_counts AS
+SELECT Beverage_category, COUNT(*) AS Beverage_count
+FROM drinks_calories
+GROUP BY Beverage_category;
+ORDER BY Beverage_count DESC
+LIMIT 1;
+
+SELECT * FROM top_category;
+
+---------------------------------------------------------------------------
+-- Average calories per Beverage category
+---------------------------------------------------------------------------
+
+SELECT Beverage_category, AVG(Calories) AS avg_calories 
+
+FROM drinks_calories
+
+GROUP BY Beverage_category;
+
+---------------------------------------------------------------------------
+-- Joining food & drinks tables where the Calories equal
+---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS food_data (Food STRING, Calories INT, Protein INT)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+LOAD DATA LOCAL INPATH '/home/caraoboyle/hadoop-3.3.6/output_food/part-m-00000'
+OVERWRITE INTO TABLE food_data;
+
+SELECT f.*, d.*
+FROM food_data f
+JOIN drinks_calories d
+ON CAST(f.Calories AS STRING) = CAST(d.Calories AS STRING);
+
+---------------------------------------------------------------------------
+-- Sampling at random 10% on beverage name
+---------------------------------------------------------------------------
+
+CREATE TABLE random_sampling AS
+
+SELECT *, RAND() AS random_value
+
+FROM drinks_calories;
+
+SELECT *
+
+FROM random_sampling
+
+WHERE random_value <= 0.10;
